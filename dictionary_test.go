@@ -37,5 +37,9 @@ func TestDictionarySize(t *testing.T) {
 	dict.GetKey([]byte{0x10})
 	dict.GetKey([]byte{0x20})
 	dict.GetKey([]byte{0x30})
-	dict.GetKey([]byte{0x40})
+	_, err := dict.GetKey([]byte{0x40})
+	if err != OverflowError {
+		t.Fail()
+		return
+	}
 }
