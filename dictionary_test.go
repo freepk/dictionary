@@ -15,15 +15,27 @@ func TestDictionary(t *testing.T) {
 	for i := 1; i <= 50; i++ {
 		buf := make([]byte, 8)
 		binary.LittleEndian.PutUint64(buf, uint64(i))
-		key, ok := dict.GetKey(buf)
-		if ok {
+		key, err := dict.GetKey(buf)
+		if err != nil {
 			t.Fail()
 			return
 		}
-		val, ok := dict.GetValue(key)
-		if !ok || !bytes.Equal(buf, val) {
+		val, err := dict.GetValue(key)
+		if err != nil || !bytes.Equal(buf, val) {
 			t.Fail()
 			return
 		}
 	}
+}
+
+func TestDictionarySize(t *testing.T) {
+	dict := NewDictionary(2)
+	if dict == nil {
+		t.Fail()
+		return
+	}
+	dict.GetKey([]byte{0x10})
+	dict.GetKey([]byte{0x20})
+	dict.GetKey([]byte{0x30})
+	dict.GetKey([]byte{0x40})
 }
