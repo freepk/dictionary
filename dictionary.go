@@ -20,13 +20,13 @@ type Dictionary struct {
 	values  [][]byte
 }
 
-func NewDictionary(power uint8) *Dictionary {
-	keys := hashtab.NewHashTab(power)
-	if keys == nil {
-		return nil
+func NewDictionary(power uint8) (*Dictionary, error) {
+	keys, err := hashtab.NewHashTab(power)
+	if err != nil {
+		return nil, err
 	}
 	values := make([][]byte, keys.Size())
-	return &Dictionary{lastKey: 1, keys: keys, values: values}
+	return &Dictionary{lastKey: 1, keys: keys, values: values}, nil
 }
 
 func (d *Dictionary) GetKey(val []byte) (int, error) {

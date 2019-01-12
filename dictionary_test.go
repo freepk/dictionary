@@ -7,8 +7,8 @@ import (
 )
 
 func TestDictionary(t *testing.T) {
-	dict := NewDictionary(8)
-	if dict == nil {
+	dict, err := NewDictionary(8)
+	if err != nil {
 		t.Fail()
 		return
 	}
@@ -29,16 +29,21 @@ func TestDictionary(t *testing.T) {
 }
 
 func TestDictionarySize(t *testing.T) {
-	dict := NewDictionary(2)
-	if dict == nil {
+	dict, err := NewDictionary(2)
+	if err != nil {
 		t.Fail()
 		return
 	}
 	dict.GetKey([]byte{0x10})
 	dict.GetKey([]byte{0x20})
 	dict.GetKey([]byte{0x30})
-	_, err := dict.GetKey([]byte{0x40})
+	_, err = dict.GetKey([]byte{0x40})
 	if err != OverflowError {
+		t.Fail()
+		return
+	}
+	_, err = dict.GetValue(100)
+	if err != KeyNotExistsError {
 		t.Fail()
 		return
 	}
