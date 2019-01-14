@@ -17,6 +17,7 @@ type Dictionary struct {
 	sync.RWMutex
 	lastKey int
 	keys    *hashtab.HashTab
+	hits    []int
 	values  [][]byte
 }
 
@@ -25,8 +26,9 @@ func NewDictionary(power uint8) (*Dictionary, error) {
 	if err != nil {
 		return nil, err
 	}
+	hits := make([]int, keys.Size())
 	values := make([][]byte, keys.Size())
-	return &Dictionary{lastKey: 1, keys: keys, values: values}, nil
+	return &Dictionary{lastKey: 1, keys: keys, hits: hits, values: values}, nil
 }
 
 func (d *Dictionary) GetKey(val []byte) (int, error) {
@@ -35,6 +37,7 @@ func (d *Dictionary) GetKey(val []byte) (int, error) {
 	d.RLock()
 	key, ok := d.keys.Get(hash)
 	if ok {
+		d.hits[int(key)]++
 		d.RUnlock()
 		return int(key), nil
 	}
@@ -66,4 +69,8 @@ func (d *Dictionary) GetValue(key int) ([]byte, error) {
 		return d.values[key], nil
 	}
 	return nil, KeyNotExistsError
+}
+
+func (d *Dictionary) Hits() []int {
+	return d.hits[:d.lastKey]
 }
