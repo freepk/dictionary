@@ -7,12 +7,7 @@ import (
 )
 
 func TestDictionary(t *testing.T) {
-	dict, err := NewDictionary(256)
-	if err != nil {
-		t.Fail()
-		return
-	}
-
+	dict := NewDictionary(256)
 	for i := 1; i <= 50; i++ {
 		buf := make([]byte, 8)
 		binary.LittleEndian.PutUint64(buf, uint64(i))
@@ -30,15 +25,11 @@ func TestDictionary(t *testing.T) {
 }
 
 func TestDictionarySize(t *testing.T) {
-	dict, err := NewDictionary(4)
-	if err != nil {
-		t.Fail()
-		return
-	}
+	dict := NewDictionary(4)
 	dict.Identify([]byte{0x10})
 	dict.Identify([]byte{0x20})
 	dict.Identify([]byte{0x30})
-	_, err = dict.Identify([]byte{0x40})
+	_, err := dict.Identify([]byte{0x40})
 	if err != SizeOverflowError {
 		t.Fail()
 		return

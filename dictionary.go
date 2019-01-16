@@ -23,14 +23,11 @@ type Dictionary struct {
 	values [][]byte
 }
 
-func NewDictionary(size uint32) (*Dictionary, error) {
-	hashes, err := hashtab.NewHashTab(size)
-	if err != nil {
-		return nil, err
-	}
+func NewDictionary(size uint32) *Dictionary {
+	hashes := hashtab.NewHashTab(size)
 	hits := make([]uint64, size)
 	values := make([][]byte, size)
-	return &Dictionary{size: uint64(size), last: 1, hits: hits, hashes: hashes, values: values}, nil
+	return &Dictionary{size: uint64(size), last: 1, hits: hits, hashes: hashes, values: values}
 }
 
 func (dict *Dictionary) Identify(val []byte) (uint64, error) {
