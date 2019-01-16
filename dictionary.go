@@ -2,7 +2,6 @@ package dictionary
 
 import (
 	"errors"
-	"sync"
 	"sync/atomic"
 
 	"github.com/freepk/hashtab"
@@ -15,7 +14,6 @@ var (
 )
 
 type Dictionary struct {
-	sync.Mutex
 	size   uint64
 	last   uint64
 	hits   []uint64
@@ -36,23 +34,17 @@ func (dict *Dictionary) Identify(val []byte) (uint64, error) {
 		atomic.AddUint64(&dict.hits[id], 1)
 		return id, nil
 	}
-	tmp := make([]byte, len(val))
-	copy(tmp, val)
-	dict.Lock()
-	id, ok := dict.hashes.Get(hash)
+	last := atomic.LoadUint64(&dict.last)
+	if last >= dict.size {
+		return 0, SizeOverflowError
+	}
+	id, ok := dict.hashes.GetOrSet(hash, last)
 	if ok {
-		dict.Unlock()
 		atomic.AddUint64(&dict.hits[id], 1)
 		return id, nil
 	}
-	if dict.last >= dict.size {
-		dict.Unlock()
-		return 0, SizeOverflowError
-	}
-	id = dict.last
-	dict.last++
-	dict.values[id] = tmp
-	dict.Unlock()
+	atomic.AddUint64(&dict.last, 1)
+	dict.values[id] = append(dict.values[id], val...)
 	return id, nil
 }
 

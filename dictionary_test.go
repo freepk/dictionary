@@ -40,3 +40,22 @@ func TestDictionarySize(t *testing.T) {
 		return
 	}
 }
+
+func TestIdentify(t *testing.T) {
+	dict := NewDictionary(16)
+	if a, err := dict.Identify([]byte{1,2,3}); err != nil {
+		t.Fail()
+	} else {
+		t.Log(a)
+	}
+	if a, err := dict.Identify([]byte{1,2,3}); err != nil {
+		t.Fail()
+	} else {
+		t.Log(a)
+	}
+	if a, err := dict.Identify([]byte{1,2,3}); err != nil {
+		t.Fail()
+	} else {
+		t.Log(a)
+	}
+}
