@@ -3,74 +3,69 @@ package dictionary
 import (
 	"errors"
 	"sync"
+	"sync/atomic"
 
 	"github.com/freepk/hashtab"
 	"github.com/spaolacci/murmur3"
 )
 
 var (
-	OverflowError     = errors.New("Overflow")
-	KeyNotExistsError = errors.New("Key not exists")
+	SizeOverflowError = errors.New("Size overflow")
+	NotExistsError    = errors.New("Not exists")
 )
 
 type Dictionary struct {
-	sync.RWMutex
-	lastKey int
-	keys    *hashtab.HashTab
-	hits    []int
-	values  [][]byte
+	sync.Mutex
+	size   uint64
+	last   uint64
+	hits   []uint64
+	hashes *hashtab.HashTab
+	values [][]byte
 }
 
-func NewDictionary(power uint8) (*Dictionary, error) {
-	keys, err := hashtab.NewHashTab(power)
+func NewDictionary(size uint32) (*Dictionary, error) {
+	hashes, err := hashtab.NewHashTab(size)
 	if err != nil {
 		return nil, err
 	}
-	hits := make([]int, keys.Size())
-	values := make([][]byte, keys.Size())
-	return &Dictionary{lastKey: 1, keys: keys, hits: hits, values: values}, nil
+	hits := make([]uint64, size)
+	values := make([][]byte, size)
+	return &Dictionary{size: uint64(size), last: 1, hits: hits, hashes: hashes, values: values}, nil
 }
 
-func (d *Dictionary) GetKey(val []byte) (int, error) {
+func (dict *Dictionary) Identify(val []byte) (uint64, error) {
 	hash := murmur3.Sum64(val)
-	// Fast path
-	d.RLock()
-	key, ok := d.keys.Get(hash)
+	if id, ok := dict.hashes.Get(hash); ok {
+		atomic.AddUint64(&dict.hits[id], 1)
+		return id, nil
+	}
+	tmp := make([]byte, len(val))
+	copy(tmp, val)
+	dict.Lock()
+	id, ok := dict.hashes.Get(hash)
 	if ok {
-		d.hits[int(key)]++
-		d.RUnlock()
-		return int(key), nil
+		dict.Unlock()
+		atomic.AddUint64(&dict.hits[id], 1)
+		return id, nil
 	}
-	d.RUnlock()
-	// Slow path
-	d.Lock()
-	if d.lastKey == int(d.keys.Size()) {
-		return 0, OverflowError
+	if dict.last >= dict.size {
+		dict.Unlock()
+		return 0, SizeOverflowError
 	}
-	key, ok = d.keys.Get(hash)
-	if ok {
-		d.Unlock()
-		return int(key), nil
-	}
-	key = uint64(d.lastKey)
-	d.keys.Set(hash, key)
-	d.lastKey++
-	d.Unlock()
-	// Copy value after key assigment
-	temp := make([]byte, len(val))
-	copy(temp, val)
-	d.values[key] = temp
-
-	return int(key), nil
+	id = dict.last
+	dict.last++
+	dict.values[id] = tmp
+	dict.Unlock()
+	return id, nil
 }
 
-func (d *Dictionary) GetValue(key int) ([]byte, error) {
-	if key > 0 && key < d.lastKey {
-		return d.values[key], nil
+func (dict *Dictionary) Value(id uint64) ([]byte, error) {
+	if id > 0 && id < dict.last {
+		return dict.values[id], nil
 	}
-	return nil, KeyNotExistsError
+	return nil, NotExistsError
 }
 
-func (d *Dictionary) Hits() []int {
-	return d.hits[:d.lastKey]
+func (dict *Dictionary) Hits() []uint64 {
+	return dict.hits
 }
