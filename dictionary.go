@@ -14,18 +14,17 @@ var (
 )
 
 type Dictionary struct {
-	size   uint64
 	last   uint64
 	hits   []uint64
 	hashes *hashtab.HashTab
 	values [][]byte
 }
 
-func NewDictionary(size uint32) *Dictionary {
-	hashes := hashtab.NewHashTab(size)
-	hits := make([]uint64, size)
-	values := make([][]byte, size)
-	return &Dictionary{size: uint64(size), last: 1, hits: hits, hashes: hashes, values: values}
+func NewDictionary(num int) *Dictionary {
+	hashes := hashtab.NewHashTab(num)
+	hits := make([]uint64, num)
+	values := make([][]byte, num)
+	return &Dictionary{last: 1, hits: hits, hashes: hashes, values: values}
 }
 
 func (dict *Dictionary) Identify(val []byte) (uint64, error) {
@@ -35,7 +34,7 @@ func (dict *Dictionary) Identify(val []byte) (uint64, error) {
 		return id, nil
 	}
 	last := atomic.LoadUint64(&dict.last)
-	if last >= dict.size {
+	if int(last) > len(dict.values) - 1 {
 		return 0, SizeOverflowError
 	}
 	id, ok := dict.hashes.GetOrSet(hash, last)
@@ -58,3 +57,4 @@ func (dict *Dictionary) Value(id uint64) ([]byte, error) {
 func (dict *Dictionary) Hits() []uint64 {
 	return dict.hits
 }
+
