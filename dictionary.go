@@ -43,7 +43,9 @@ func (dict *Dictionary) Identify(val []byte) (uint64, error) {
 		return id, nil
 	}
 	atomic.AddUint64(&dict.last, 1)
-	dict.values[id] = append(dict.values[id], val...)
+	tmp := make([]byte, len(val))
+	copy(tmp, val)
+	dict.values[id] = tmp
 	return id, nil
 }
 
