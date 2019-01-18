@@ -57,6 +57,5 @@ func (dict *Dictionary) Value(id uint64) ([]byte, error) {
 }
 
 func (dict *Dictionary) Hits() []uint64 {
-	return dict.hits
+	return dict.hits[:dict.last]
 }
-
