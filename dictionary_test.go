@@ -16,8 +16,8 @@ func TestDictionary(t *testing.T) {
 			t.Fail()
 			return
 		}
-		val, err := dict.Value(id)
-		if err != nil || !bytes.Equal(buf, val) {
+		val, ok := dict.Value(id)
+		if !ok || !bytes.Equal(buf, val) {
 			t.Fail()
 			return
 		}
@@ -29,8 +29,8 @@ func TestDictionarySize(t *testing.T) {
 	dict.Identify([]byte{0x10})
 	dict.Identify([]byte{0x20})
 	dict.Identify([]byte{0x30})
-	_, err := dict.Value(100)
-	if err != NotExistsError {
+	_, ok := dict.Value(100)
+	if ok {
 		t.Fail()
 		return
 	}

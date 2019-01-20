@@ -1,14 +1,9 @@
 package dictionary
 
 import (
-	"errors"
 	"sync"
 
 	"github.com/spaolacci/murmur3"
-)
-
-var (
-	NotExistsError = errors.New("Not exists")
 )
 
 type Dictionary struct {
@@ -56,9 +51,9 @@ func (dict *Dictionary) Len() int {
 	return len(dict.values)
 }
 
-func (dict *Dictionary) Value(id int) ([]byte, error) {
+func (dict *Dictionary) Value(id int) ([]byte, bool) {
 	if id > 0 && id < len(dict.values) {
-		return dict.values[id], nil
+		return dict.values[id], true
 	}
-	return nil, NotExistsError
+	return nil, false
 }
