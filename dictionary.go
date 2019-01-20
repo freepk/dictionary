@@ -44,13 +44,16 @@ func (dict *Dictionary) Identify(val []byte) (int, error) {
 	temp = unquote(temp)
 	dict.values = append(dict.values, temp)
 	dict.hashes[hash] = last
-	dict.Unlock()
-
 	if len(temp) < len(val) {
 		hash = murmur3.Sum64(temp)
 		dict.hashes[hash] = last
 	}
+	dict.Unlock()
 	return last, nil
+}
+
+func (dict *Dictionary) Len() int {
+	return len(dict.values)
 }
 
 func (dict *Dictionary) Value(id int) ([]byte, error) {
