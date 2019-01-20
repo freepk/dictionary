@@ -18,20 +18,20 @@ func NewDictionary() *Dictionary {
 	return &Dictionary{hashes: hashes, values: values}
 }
 
-func (dict *Dictionary) Identify(val []byte) (int, error) {
+func (dict *Dictionary) Identify(val []byte) (int, bool) {
 	hash := murmur3.Sum64(val)
 
 	dict.RLock()
 	if id, ok := dict.hashes[hash]; ok {
 		dict.RUnlock()
-		return id, nil
+		return id, true
 	}
 	dict.RUnlock()
 
 	dict.Lock()
 	if id, ok := dict.hashes[hash]; ok {
 		dict.Unlock()
-		return id, nil
+		return id, true
 	}
 	last := len(dict.values)
 	temp := make([]byte, len(val))
@@ -44,11 +44,17 @@ func (dict *Dictionary) Identify(val []byte) (int, error) {
 		dict.hashes[hash] = last
 	}
 	dict.Unlock()
-	return last, nil
+	return last, false
 }
 
-func (dict *Dictionary) Len() int {
-	return len(dict.values)
+func (dict *Dictionary) Id(val []byte) (int, bool) {
+	hash := murmur3.Sum64(val)
+
+	dict.RLock()
+	id, ok := dict.hashes[hash]
+	dict.RUnlock()
+
+	return id, ok
 }
 
 func (dict *Dictionary) Value(id int) ([]byte, bool) {
@@ -56,4 +62,8 @@ func (dict *Dictionary) Value(id int) ([]byte, bool) {
 		return dict.values[id], true
 	}
 	return nil, false
+}
+
+func (dict *Dictionary) Len() int {
+	return len(dict.values)
 }

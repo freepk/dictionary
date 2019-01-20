@@ -11,8 +11,8 @@ func TestDictionary(t *testing.T) {
 	for i := 1; i <= 50; i++ {
 		buf := make([]byte, 8)
 		binary.LittleEndian.PutUint64(buf, uint64(i))
-		id, err := dict.Identify(buf)
-		if err != nil {
+		id, ok := dict.Identify(buf)
+		if ok {
 			t.Fail()
 			return
 		}
@@ -38,17 +38,12 @@ func TestDictionarySize(t *testing.T) {
 
 func TestIdentify(t *testing.T) {
 	dict := NewDictionary()
-	if a, err := dict.Identify([]byte{1, 2, 3}); err != nil {
+	if a, ok := dict.Identify([]byte{1, 2, 3}); ok {
 		t.Fail()
 	} else {
 		t.Log(a)
 	}
-	if a, err := dict.Identify([]byte{1, 2, 3}); err != nil {
-		t.Fail()
-	} else {
-		t.Log(a)
-	}
-	if a, err := dict.Identify([]byte{1, 2, 3}); err != nil {
+	if a, ok := dict.Identify([]byte{1, 2, 3}); !ok {
 		t.Fail()
 	} else {
 		t.Log(a)
