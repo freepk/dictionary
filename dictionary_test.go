@@ -7,7 +7,7 @@ import (
 )
 
 func TestDictionary(t *testing.T) {
-	dict := NewDictionary(256)
+	dict := NewDictionary()
 	for i := 1; i <= 50; i++ {
 		buf := make([]byte, 8)
 		binary.LittleEndian.PutUint64(buf, uint64(i))
@@ -25,16 +25,11 @@ func TestDictionary(t *testing.T) {
 }
 
 func TestDictionarySize(t *testing.T) {
-	dict := NewDictionary(4)
+	dict := NewDictionary()
 	dict.Identify([]byte{0x10})
 	dict.Identify([]byte{0x20})
 	dict.Identify([]byte{0x30})
-	_, err := dict.Identify([]byte{0x40})
-	if err != SizeOverflowError {
-		t.Fail()
-		return
-	}
-	_, err = dict.Value(100)
+	_, err := dict.Value(100)
 	if err != NotExistsError {
 		t.Fail()
 		return
@@ -42,18 +37,18 @@ func TestDictionarySize(t *testing.T) {
 }
 
 func TestIdentify(t *testing.T) {
-	dict := NewDictionary(16)
-	if a, err := dict.Identify([]byte{1,2,3}); err != nil {
+	dict := NewDictionary()
+	if a, err := dict.Identify([]byte{1, 2, 3}); err != nil {
 		t.Fail()
 	} else {
 		t.Log(a)
 	}
-	if a, err := dict.Identify([]byte{1,2,3}); err != nil {
+	if a, err := dict.Identify([]byte{1, 2, 3}); err != nil {
 		t.Fail()
 	} else {
 		t.Log(a)
 	}
-	if a, err := dict.Identify([]byte{1,2,3}); err != nil {
+	if a, err := dict.Identify([]byte{1, 2, 3}); err != nil {
 		t.Fail()
 	} else {
 		t.Log(a)
