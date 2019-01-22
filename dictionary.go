@@ -16,6 +16,29 @@ func NewDictionary() *Dictionary {
 	return &Dictionary{tokens: tokens, values: values}
 }
 
+type NormFunc func([]byte) []byte
+
+func (dict *Dictionary) AddTokenNorm(value []byte, norm NormFunc) (int, bool) {
+	dict.RLock()
+	if token, ok := dict.tokens[string(value)]; ok {
+		dict.RUnlock()
+		return token, true
+	}
+	dict.RUnlock()
+	dict.Lock()
+	if token, ok := dict.tokens[string(value)]; ok {
+		dict.Unlock()
+		return token, true
+	}
+	token := len(dict.values)
+	nvalue := norm(value)
+	dict.values = append(dict.values, nvalue)
+	dict.tokens[string(nvalue)] = token
+	dict.tokens[string(value)] = token
+	dict.Unlock()
+	return token, false
+}
+
 func (dict *Dictionary) AddToken(value []byte) (int, bool) {
 	dict.RLock()
 	if token, ok := dict.tokens[string(value)]; ok {
