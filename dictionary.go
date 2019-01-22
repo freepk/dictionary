@@ -17,12 +17,6 @@ func NewDictionary() *Dictionary {
 }
 
 func (dict *Dictionary) AddToken(value []byte) (int, bool) {
-	dict.RLock()
-	if token, ok := dict.tokens[string(value)]; ok {
-		dict.RUnlock()
-		return token, true
-	}
-	dict.RUnlock()
 	dict.Lock()
 	if token, ok := dict.tokens[string(value)]; ok {
 		dict.Unlock()
