@@ -33,7 +33,7 @@ func (dict *Dictionary) AddKey(val []byte) (int, bool) {
 	}
 	key := len(dict.vals)
 	dict.keys[hash] = key
-	dict.vals = append(dict.vals, val)
+	dict.vals = append(dict.vals, append([]byte{}, val...))
 	dict.Unlock()
 	return key, false
 }
