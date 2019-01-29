@@ -2,44 +2,46 @@ package dictionary
 
 import (
 	"sync"
+
+	"github.com/spaolacci/murmur3"
 )
 
 type Dictionary struct {
 	sync.RWMutex
-	tokens map[string]int
+	tokens map[uint64]int
 	values [][]byte
 }
 
-func NewDictionary() *Dictionary {
-	tokens := make(map[string]int)
-	values := make([][]byte, 1)
+func NewDictionary(reserved int) *Dictionary {
+	tokens := make(map[uint64]int)
+	values := make([][]byte, reserved)
 	return &Dictionary{tokens: tokens, values: values}
 }
 
 func (dict *Dictionary) AddToken(value []byte) (int, bool) {
+	hash := murmur3.Sum64(value)
 	dict.RLock()
-	if token, ok := dict.tokens[string(value)]; ok {
+	if token, ok := dict.tokens[hash]; ok {
 		dict.RUnlock()
 		return token, true
 	}
 	dict.RUnlock()
 	dict.Lock()
-	if token, ok := dict.tokens[string(value)]; ok {
+	if token, ok := dict.tokens[hash]; ok {
 		dict.Unlock()
 		return token, true
 	}
 	token := len(dict.values)
-	temp := make([]byte, len(value))
-	copy(temp, value)
-	dict.values = append(dict.values, temp)
-	dict.tokens[string(value)] = token
+	dict.tokens[hash] = token
+	dict.values = append(dict.values, value)
 	dict.Unlock()
 	return token, false
 }
 
 func (dict *Dictionary) Token(value []byte) (int, bool) {
+	hash := murmur3.Sum64(value)
 	dict.RLock()
-	token, ok := dict.tokens[string(value)]
+	token, ok := dict.tokens[hash]
 	dict.RUnlock()
 	return token, ok
 }
