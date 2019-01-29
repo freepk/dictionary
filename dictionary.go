@@ -8,51 +8,51 @@ import (
 
 type Dictionary struct {
 	sync.RWMutex
-	tokens map[uint64]int
-	values [][]byte
+	keys map[uint64]int
+	vals [][]byte
 }
 
 func NewDictionary(reserved int) *Dictionary {
-	tokens := make(map[uint64]int)
-	values := make([][]byte, reserved)
-	return &Dictionary{tokens: tokens, values: values}
+	keys := make(map[uint64]int)
+	vals := make([][]byte, reserved)
+	return &Dictionary{keys: keys, vals: vals}
 }
 
-func (dict *Dictionary) AddToken(value []byte) (int, bool) {
-	hash := murmur3.Sum64(value)
+func (dict *Dictionary) AddKey(val []byte) (int, bool) {
+	hash := murmur3.Sum64(val)
 	dict.RLock()
-	if token, ok := dict.tokens[hash]; ok {
+	if key, ok := dict.keys[hash]; ok {
 		dict.RUnlock()
-		return token, true
+		return key, true
 	}
 	dict.RUnlock()
 	dict.Lock()
-	if token, ok := dict.tokens[hash]; ok {
+	if key, ok := dict.keys[hash]; ok {
 		dict.Unlock()
-		return token, true
+		return key, true
 	}
-	token := len(dict.values)
-	dict.tokens[hash] = token
-	dict.values = append(dict.values, value)
+	key := len(dict.vals)
+	dict.keys[hash] = key
+	dict.vals = append(dict.vals, val)
 	dict.Unlock()
-	return token, false
+	return key, false
 }
 
-func (dict *Dictionary) Token(value []byte) (int, bool) {
-	hash := murmur3.Sum64(value)
+func (dict *Dictionary) Key(val []byte) (int, bool) {
+	hash := murmur3.Sum64(val)
 	dict.RLock()
-	token, ok := dict.tokens[hash]
+	key, ok := dict.keys[hash]
 	dict.RUnlock()
-	return token, ok
+	return key, ok
 }
 
-func (dict *Dictionary) Value(token int) ([]byte, bool) {
-	if token > 0 && token < len(dict.values) {
-		return dict.values[token], true
+func (dict *Dictionary) Val(key int) ([]byte, bool) {
+	if key > 0 && key < len(dict.vals) {
+		return dict.vals[key], true
 	}
 	return nil, false
 }
 
 func (dict *Dictionary) Len() int {
-	return len(dict.values)
+	return len(dict.vals)
 }

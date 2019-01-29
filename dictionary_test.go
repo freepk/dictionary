@@ -11,12 +11,12 @@ func TestDictionary(t *testing.T) {
 	for i := 1; i <= 50; i++ {
 		buf := make([]byte, 8)
 		binary.LittleEndian.PutUint64(buf, uint64(i))
-		id, ok := dict.AddToken(buf)
+		key, ok := dict.AddKey(buf)
 		if ok {
 			t.Fail()
 			return
 		}
-		val, ok := dict.Value(id)
+		val, ok := dict.Val(key)
 		if !ok || !bytes.Equal(buf, val) {
 			t.Fail()
 			return
